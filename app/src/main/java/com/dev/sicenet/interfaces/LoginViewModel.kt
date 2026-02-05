@@ -9,7 +9,7 @@ import com.dev.sicenet.data.SNRepository
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val repository: SNRepository // inyectado o creado en MainActivity
+    private val repository: SNRepository
 ) : ViewModel() {
 
     var loginState by mutableStateOf(LoginState())
@@ -25,24 +25,26 @@ class LoginViewModel(
 
     fun login() {
         viewModelScope.launch {
-            loginState = loginState.copy(isLoading = true, errorMessage = null)
-
             try {
-                val result = repository.acceso(
-                    loginState.matricula,
-                    loginState.contrasena
-                )
-
-                loginState = loginState.copy(
-                    isLoading = false,
-                    isSuccess = true,
-                    token = result
-                )
+                val token = repository.acceso(loginState.matricula, loginState.contrasena)
+                if (token.isNotEmpty()) {
+                    loginState = loginState.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        token = token
+                    )
+                } else {
+                    loginState = loginState.copy(
+                        isLoading = false,
+                        isSuccess = false,
+                        errorMessage = "Credenciales invalidas"
+                    )
+                }
             } catch (e: Exception) {
                 loginState = loginState.copy(
                     isLoading = false,
                     isSuccess = false,
-                    errorMessage = e.message
+                    errorMessage = "Error de conexion: ${e.message}"
                 )
             }
         }

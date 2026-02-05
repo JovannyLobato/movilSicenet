@@ -20,6 +20,7 @@ import com.example.marsphotos.model.ProfileStudent
 import com.example.marsphotos.model.Usuario
 import com.dev.sicenet.network.SICENETWService
 import com.dev.sicenet.network.bodyacceso
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.BufferedReader
 import java.io.IOException
@@ -28,6 +29,7 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
+import kotlin.toString
 
 /**
  * Repository that fetch mars photos list from marsApi.
@@ -74,17 +76,49 @@ class NetworSNRepository(
 ) : SNRepository {
     /** Fetches list of MarsPhoto from marsApi*/
     override suspend fun acceso(m: String, p: String): String {
+        val soapXml = """
+            <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                           xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                <soap:Body>
+                    <accesoLogin xmlns="http://tempuri.org/">
+                        <strMatricula>${escapeXml(m)}</strMatricula>
+                        <strContrasenia>${escapeXml(p)}</strContrasenia>
+                    </accesoLogin>
+                </soap:Body>
+            </soap:Envelope>
+        """.trimIndent()
 
-        //callHTTPS()
-        val res = snApiService.acceso(bodyacceso.format(m,p).toRequestBody() )
+        Log.d("SOAP_XML", soapXml)
 
-        Log.d("RXML", res.string() )
-       /* Log.d("RXML", res.body?.accesoLoginResponse?.accesoLoginResult.toString() )
+        val soapBody = soapXml
+            .toRequestBody("text/xml".toMediaType())
 
-        return res.body?.accesoLoginResponse?.accesoLoginResult.toString()*/
-        /*Log.d("RXML", res.message() )
-        return res.message()*/
-        return ""
+
+        val res = snApiService.acceso(soapBody)
+
+        val responseString = res.string()
+        Log.d("RXML", responseString)
+
+        if (responseString.isNotEmpty()) {
+            Log.d("API", "Conexión exitosa con el servidor")
+        }
+
+        val regex = "<accesoLoginResult>(.*?)</accesoLoginResult>".toRegex()
+        val match = regex.find(responseString)
+        val token = match?.groups?.get(1)?.value ?: ""
+
+        return token
+    }
+
+    fun escapeXml(value: String): String {
+        return value
+            .replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace("\"", "&quot;")
+            .replace("'", "&apos;")
+
     }
 
     override suspend fun accesoObjeto(m: String, p: String): Usuario {
@@ -100,12 +134,10 @@ class NetworSNRepository(
     }
 
     suspend fun callHTTPS(){
-        // Datos para la petición
-        val matricula = "s20120999"
-        val contrasenia = "MIPASS"
-        val tipoUsuario = "ALUMNO" // o "DOCENTE", según corresponda
+        val matricula = "s22120152"
+        val contrasenia = "PASS"
+        val tipoUsuario = "ALUMNO"
 
-        // URL del servicio web SOAP
         val urlString = "https://sicenet.surguanajuato.tecnm.mx/ws/wsalumnos.asmx"
 
         // Cuerpo del mensaje SOAP
@@ -123,6 +155,7 @@ class NetworSNRepository(
 
         try {
             // Establecer la conexión HTTPS
+
             val url = URL(urlString)
             val connection = url.openConnection() as HttpsURLConnection
 
@@ -136,12 +169,10 @@ class NetworSNRepository(
             connection.setRequestProperty("Content-Length", soapEnvelope.length.toString())
             connection.setRequestProperty("SOAPAction", "\"http://tempuri.org/accesoLogin\"")
 
-            // Enviar el cuerpo del mensaje SOAP
             val outputStream: OutputStream = connection.outputStream
             outputStream.write(soapEnvelope.toByteArray(Charsets.UTF_8))
             outputStream.close()
 
-            // Leer la respuesta del servicio
             val responseCode = connection.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 val cookies = connection.getHeaderField("Set-Cookie")
@@ -153,18 +184,14 @@ class NetworSNRepository(
                     response.append(line)
                 }
 
-                // Aquí puedes procesar la respuesta del servicio
                 println("Respuesta del servicio: $response")
                 Log.d("SXML","Respuesta del servicio: $response")
             } else {
-                // Manejar errores de conexión
                 println("Error en la conexión: $responseCode")
             }
 
-            // Cerrar la conexión
             connection.disconnect()
         } catch (e: IOException) {
-            // Manejar excepciones de conexión
             e.printStackTrace()
         }
     }
