@@ -92,7 +92,7 @@ class NetworSNRepository(
         Log.d("SOAP_XML", soapXml)
 
         val soapBody = soapXml
-            .toRequestBody("text/xml".toMediaType())
+            .toRequestBody("text/xml; charset=utf-8".toMediaType())
 
 
         val res = snApiService.acceso(soapBody)
@@ -133,67 +133,67 @@ class NetworSNRepository(
 
     }
 
-    suspend fun callHTTPS(){
-        val matricula = "s22120152"
-        val contrasenia = "PASS"
-        val tipoUsuario = "ALUMNO"
-
-        val urlString = "https://sicenet.surguanajuato.tecnm.mx/ws/wsalumnos.asmx"
-
-        // Cuerpo del mensaje SOAP
-        val soapEnvelope = """
-        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-          <soap:Body>
-            <accesoLogin xmlns="http://tempuri.org/">
-              <strMatricula>$matricula</strMatricula>
-              <strContrasenia>$contrasenia</strContrasenia>
-              <tipoUsuario>$tipoUsuario</tipoUsuario>
-            </accesoLogin>
-          </soap:Body>
-        </soap:Envelope>
-    """.trimIndent()
-
-        try {
-            // Establecer la conexión HTTPS
-
-            val url = URL(urlString)
-            val connection = url.openConnection() as HttpsURLConnection
-
-            // Configurar la conexión
-            connection.requestMethod = "POST"
-            connection.doOutput = true
-            connection.setRequestProperty("Host", "sicenet.surguanajuato.tecnm.mx")
-            connection.setRequestProperty("Content-Type", "text/xml; charset=\"UTF-8\"")
-            //connection.setRequestProperty("Sec-Fetch-Mode", "cors")
-            connection.setRequestProperty("Cookie", ".ASPXANONYMOUS=MaWJCZ-X2gEkAAAAODU2ZjkyM2EtNWE3ZC00NTdlLWFhYTAtYjk5ZTE5MDlkODIzeI1pCwvskL6aqtre4eT8Atfq2Po1;")
-            connection.setRequestProperty("Content-Length", soapEnvelope.length.toString())
-            connection.setRequestProperty("SOAPAction", "\"http://tempuri.org/accesoLogin\"")
-
-            val outputStream: OutputStream = connection.outputStream
-            outputStream.write(soapEnvelope.toByteArray(Charsets.UTF_8))
-            outputStream.close()
-
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                val cookies = connection.getHeaderField("Set-Cookie")
-                val reader = BufferedReader(InputStreamReader(connection.inputStream))
-                var line: String?
-                val response = StringBuilder()
-
-                while (reader.readLine().also { line = it } != null) {
-                    response.append(line)
-                }
-
-                println("Respuesta del servicio: $response")
-                Log.d("SXML","Respuesta del servicio: $response")
-            } else {
-                println("Error en la conexión: $responseCode")
-            }
-
-            connection.disconnect()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
+//    fun callHTTPS(){
+//        val matricula = "s22120152"
+//        val contrasenia = "PASS"
+//        val tipoUsuario = "ALUMNO"
+//
+//        val urlString = "https://sicenet.surguanajuato.tecnm.mx/ws/wsalumnos.asmx"
+//
+//        // Cuerpo del mensaje SOAP
+//        val soapEnvelope = """
+//        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+//          <soap:Body>
+//            <accesoLogin xmlns="http://tempuri.org/">
+//              <strMatricula>$matricula</strMatricula>
+//              <strContrasenia>$contrasenia</strContrasenia>
+//              <tipoUsuario>$tipoUsuario</tipoUsuario>
+//            </accesoLogin>
+//          </soap:Body>
+//        </soap:Envelope>
+//    """.trimIndent()
+//
+//        try {
+//            // Establecer la conexión HTTPS
+//
+//            val url = URL(urlString)
+//            val connection = url.openConnection() as HttpsURLConnection
+//
+//            // Configurar la conexión
+//            connection.requestMethod = "POST"
+//            connection.doOutput = true
+//            connection.setRequestProperty("Host", "sicenet.surguanajuato.tecnm.mx")
+//            connection.setRequestProperty("Content-Type", "text/xml; charset=\"UTF-8\"")
+//            //connection.setRequestProperty("Sec-Fetch-Mode", "cors")
+//            connection.setRequestProperty("Cookie", ".ASPXANONYMOUS=MaWJCZ-X2gEkAAAAODU2ZjkyM2EtNWE3ZC00NTdlLWFhYTAtYjk5ZTE5MDlkODIzeI1pCwvskL6aqtre4eT8Atfq2Po1;")
+//            connection.setRequestProperty("Content-Length", soapEnvelope.length.toString())
+//            connection.setRequestProperty("SOAPAction", "\"http://tempuri.org/accesoLogin\"")
+//
+//            val outputStream: OutputStream = connection.outputStream
+//            outputStream.write(soapEnvelope.toByteArray(Charsets.UTF_8))
+//            outputStream.close()
+//
+//            val responseCode = connection.responseCode
+//            if (responseCode == HttpURLConnection.HTTP_OK) {
+//                val cookies = connection.getHeaderField("Set-Cookie")
+//                val reader = BufferedReader(InputStreamReader(connection.inputStream))
+//                var line: String?
+//                val response = StringBuilder()
+//
+//                while (reader.readLine().also { line = it } != null) {
+//                    response.append(line)
+//                }
+//
+//                println("Respuesta del servicio: $response")
+//                Log.d("SXML","Respuesta del servicio: $response")
+//            } else {
+//                println("Error en la conexión: $responseCode")
+//            }
+//
+//            connection.disconnect()
+//        } catch (e: IOException) {
+//            e.printStackTrace()
+//        }
+//    }
 
 }

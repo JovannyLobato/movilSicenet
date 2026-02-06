@@ -33,10 +33,16 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel(), modifier: Modifier = Mo
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("SICENET ITSUR", style = MaterialTheme.typography.headlineMedium)
-        Text("Bienvenido", style = MaterialTheme.typography.bodyLarge)
+        Text("SICENET",
+            style = MaterialTheme.typography.headlineLarge)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Inicio de sesión",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
 
         OutlinedTextField(
             value = state.matricula,
@@ -57,24 +63,39 @@ fun LoginScreen(viewModel: LoginViewModel = viewModel(), modifier: Modifier = Mo
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(onClick = { viewModel.login() }) {
+        Button(
+            modifier = Modifier
+                .height(48.dp),
+            enabled = !state.isLoading,
+            onClick = { viewModel.login() }) {
             Text("Ingresar")
         }
 
         if (state.isLoading) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(
+                strokeWidth = 3.dp
+            )
         }
 
         state.errorMessage?.let {
-            Text("Error: $it", color = Color.Red)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Error: $it", color = Color.Red, style = MaterialTheme.typography.bodySmall)
         }
 
         if (state.isSuccess) {
-            Column {
-                Text("Bienvenido, token: ${state.token}")
-                Text("Matrícula: ${state.matricula}")
+            Spacer(modifier = Modifier.height(24.dp))
+            Column (
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Bienvenido, token: ${state.token}",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyLarge)
+                Text("Matrícula: ${state.matricula}",
+                    style = MaterialTheme.typography.bodySmall)
                 Text("Estado: Autenticación exitosa")
-                Text("Fecha de acceso: ${java.time.LocalDateTime.now()}")
+                Text("Fecha de acceso: ${java.time.LocalDateTime.now()}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
