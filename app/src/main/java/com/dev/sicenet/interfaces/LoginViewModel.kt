@@ -25,9 +25,16 @@ class LoginViewModel(
 
     fun login() {
         viewModelScope.launch {
+            loginState = loginState.copy(
+                isLoading = true,
+                errorMessage = null,
+                isSuccess = false
+            )
             try {
+
                 val token = repository.acceso(loginState.matricula, loginState.contrasena)
-                if (token.isNotEmpty()) {
+
+                if (token.isNotBlank() && !token.contains("ERROR", ignoreCase = true)) {
                     loginState = loginState.copy(
                         isLoading = false,
                         isSuccess = true,
